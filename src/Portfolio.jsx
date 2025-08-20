@@ -1,9 +1,61 @@
 import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Mail, ExternalLink, ArrowUpRight, MapPin } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  ExternalLink,
+  ArrowUpRight,
+  MapPin,
+} from "lucide-react";
+
+function Button({
+  asChild,
+  variant = "primary",
+  className = "",
+  children,
+  ...props
+}) {
+  const base =
+    "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40";
+  const styles =
+    variant === "outline"
+      ? "bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600" // matches your current outline usage
+      : "bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600";
+  if (asChild) {
+    const { href = "#" } = props;
+    return (
+      <a href={href} className={`${base} ${styles} ${className}`} {...props}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <button className={`${base} ${styles} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}
+function Card({ className = "", children }) {
+  return (
+    <div
+      className={`rounded-2xl border border-neutral-800 bg-neutral-900/40 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+function CardContent({ className = "", children }) {
+  return <div className={`p-6 ${className}`}>{children}</div>;
+}
+function Badge({ variant = "secondary", className = "", children }) {
+  const base = "inline-flex items-center rounded-full px-3 py-1 text-sm";
+  const styles =
+    variant === "outline"
+      ? "border border-neutral-700 text-neutral-300"
+      : "bg-neutral-900 text-neutral-100 border border-neutral-700";
+  return <span className={`${base} ${styles} ${className}`}>{children}</span>;
+}
 
 // ======= DATA (original iteration) ==========================================
 const PROFILE = {
@@ -11,7 +63,7 @@ const PROFILE = {
   role: "Software Engineer",
   subtitle: "Full‑Stack • React • AWS",
   blurb:
-    "I build fast, clean, and reliable web apps with a focus on DX, performance, and shipping maintainable systems.",
+    "I am a Full-Stack Engineer with an affinity for simplicity, modernity, and minimalism.",
   email: "kylewhang@gmail.com",
   links: {
     github: "https://github.com/shaisle",
@@ -59,31 +111,23 @@ const SKILLS = [
   "Zustand",
   "MUI",
   "AWS (S3, EC2, RDS, Lambda, CDK)",
-  "CloudFormation",
   "GitLab CI/CD",
   "WordPress",
 ];
 
 const PROJECTS = [
   {
-    name: "Fleet Dashboard (Demo)",
-    desc: "Responsive dashboard for fleet telemetry with real‑time metrics and audit logs.",
-    tech: ["React", "TypeScript", "Vite", "Zustand", "Recharts", "MUI"],
+    name: "Dockter",
+    desc: "Low-overhead open source Docker log management tool built around: Real-time Log Aggregation, Efficient Storage and Search Capability.",
+    tech: ["React", "TypeScript", "Vite", "Docker", "Electron", "TailwindCSS"],
     live: "#",
-    repo: "#",
+    repo: "https://github.com/oslabs-beta/Dockter",
   },
   {
-    name: "Serverless Adjudication API (Demo)",
-    desc: "Event‑driven workflow with Step Functions, Lambda, and S3.",
-    tech: ["AWS", "Lambda", "Step Functions", "API Gateway", "Node.js"],
-    live: "#",
-    repo: "#",
-  },
-  {
-    name: "WP Performance Toolkit",
-    desc: "CLI to audit and harden WordPress for speed and SEO.",
-    tech: ["Node.js", "PNPM", "Lighthouse", "WordPress"],
-    live: "#",
+    name: "Veinlady.net",
+    desc: "Custom wordpress website for medical professionals.",
+    tech: ["WordPress", "DNS", "Brevo"],
+    live: "https://veinlady.net/",
     repo: "#",
   },
 ];
@@ -98,9 +142,9 @@ const fadeUp = {
 
 // ======= Particle Cursor (original subtle glow) =============================
 function ParticleCanvas() {
-  const canvasRef = useRef(null as HTMLCanvasElement | null);
-  const particlesRef = useRef<{ x: number; y: number; vx: number; vy: number; a: number; r: number; life: number }[]>([]);
-  const rafRef = useRef<number | null>(null);
+  const canvasRef = useRef(null);
+  const particlesRef = useRef([]);
+  const rafRef = useRef(null);
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -121,7 +165,7 @@ function ParticleCanvas() {
     setSize();
     window.addEventListener("resize", setSize);
 
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e) => {
       const { clientX: x, clientY: y } = e;
       const count = 6 + Math.floor(Math.random() * 5);
       for (let i = 0; i < count; i++) {
@@ -137,7 +181,8 @@ function ParticleCanvas() {
           life: 60 + Math.floor(Math.random() * 30),
         });
       }
-      if (particlesRef.current.length > 600) particlesRef.current.splice(0, particlesRef.current.length - 600);
+      if (particlesRef.current.length > 600)
+        particlesRef.current.splice(0, particlesRef.current.length - 600);
     };
     window.addEventListener("mousemove", onMove);
 
@@ -173,7 +218,11 @@ function ParticleCanvas() {
       window.removeEventListener("resize", setSize);
       window.removeEventListener("mousemove", onMove);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      try { document.body.removeChild(canvas); } catch {}
+      try {
+        document.body.removeChild(canvas);
+      } catch {
+        /* empty */
+      }
     };
   }, []);
 
@@ -182,14 +231,16 @@ function ParticleCanvas() {
 
 // ======= MAIN ===============================================================
 export default function Portfolio() {
-  const year = useMemo(() => new Date().getFullYear(), []);
+  // const year = useMemo(() => new Date().getFullYear(), []);
 
   useEffect(() => {
     // Dark theme + smooth scrolling
     document.documentElement.classList.add("dark");
     const prev = document.documentElement.style.scrollBehavior;
     document.documentElement.style.scrollBehavior = "smooth";
-    return () => { document.documentElement.style.scrollBehavior = prev; };
+    return () => {
+      document.documentElement.style.scrollBehavior = prev;
+    };
   }, []);
 
   return (
@@ -206,30 +257,68 @@ export default function Portfolio() {
       <ParticleCanvas />
 
       {/* HERO */}
-      <section id="home" className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-4 text-center">
+      <section
+        id="home"
+        className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-4 text-center"
+      >
         <motion.div {...fadeUp} className="space-y-5">
           <p className="text-sm text-neutral-400">{PROFILE.role}</p>
-          <h1 className="text-4xl font-bold leading-tight md:text-6xl">{PROFILE.name}</h1>
+          <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+            {PROFILE.name}
+          </h1>
           <p className="text-lg text-neutral-300">{PROFILE.subtitle}</p>
           <p className="mx-auto max-w-2xl text-neutral-300">{PROFILE.blurb}</p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <Button asChild>
-              <a href="#projects" className="text-white">View Projects <ArrowUpRight className="ml-2 h-4 w-4" /></a>
+              <a href="#projects" className="text-white flex items-center ">
+                View Projects
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </a>
             </Button>
-            <Button asChild variant="outline" className="bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600">
-              <a href={`mailto:${PROFILE.email}`}><Mail className="mr-2 h-4 w-4" /> Contact</a>
+            <Button asChild>
+              <a href={`mailto:${PROFILE.email}`} className="flex items-center">
+                <Mail className="mr-2 h-4 w-4" />
+                Contact
+              </a>
             </Button>
           </div>
           <div className="flex justify-center gap-4 pt-4">
-            <a href={PROFILE.links.github} target="_blank" rel="noreferrer noopener" aria-label="GitHub" className="hover:opacity-80"><Github className="h-6 w-6" /></a>
-            <a href={PROFILE.links.linkedin} target="_blank" rel="noreferrer noopener" aria-label="LinkedIn" className="hover:opacity-80"><Linkedin className="h-6 w-6" /></a>
+            <a
+              href={PROFILE.links.github}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label="GitHub"
+              className="hover:opacity-80"
+            >
+              <Github className="h-6 w-6" />
+            </a>
+            <a
+              href={PROFILE.links.linkedin}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label="LinkedIn"
+              className="hover:opacity-80"
+            >
+              <Linkedin className="h-6 w-6" />
+            </a>
+          </div>
+          <div className="flex justify-center items-center gap-2 text-sm text-neutral-400 pt-2">
+            {/* <MapPin className="h-4 w-4" /> {PROFILE.location} */}
           </div>
         </motion.div>
       </section>
 
       {/* JOURNEY (resume bullets) */}
-      <section id="journey" className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6">
-        <motion.h2 {...fadeUp} className="mb-8 text-2xl font-semibold text-center">Journey</motion.h2>
+      <section
+        id="journey"
+        className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6"
+      >
+        <motion.h2
+          {...fadeUp}
+          className="mb-8 text-2xl font-semibold text-center"
+        >
+          Journey
+        </motion.h2>
         <div className="relative pl-6">
           <div className="absolute left-2 top-0 h-full w-px bg-neutral-800" />
           <div className="space-y-8">
@@ -238,11 +327,18 @@ export default function Portfolio() {
                 <div className="absolute -left-0.5 top-1 h-2 w-2 rounded-full bg-white" />
                 <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-medium">{e.org} • <span className="text-neutral-300">{e.title}</span></div>
-                    <div className="text-sm text-neutral-400">{e.place} • {e.time}</div>
+                    <div className="font-medium">
+                      {e.org} •{" "}
+                      <span className="text-neutral-300">{e.title}</span>
+                    </div>
+                    <div className="text-sm text-neutral-400">
+                      {e.place} • {e.time}
+                    </div>
                   </div>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-neutral-300">
-                    {e.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                    {e.bullets.map((b, i) => (
+                      <li key={i}>{b}</li>
+                    ))}
                   </ul>
                 </div>
               </motion.div>
@@ -252,11 +348,23 @@ export default function Portfolio() {
       </section>
 
       {/* SKILLS */}
-      <section id="skills" className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6">
-        <motion.h2 {...fadeUp} className="mb-6 text-2xl font-semibold text-center">Skills</motion.h2>
+      <section
+        id="skills"
+        className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6"
+      >
+        <motion.h2
+          {...fadeUp}
+          className="mb-6 text-2xl font-semibold text-center"
+        >
+          Skills
+        </motion.h2>
         <motion.div {...fadeUp} className="flex flex-wrap justify-center gap-2">
           {SKILLS.map((s) => (
-            <Badge key={s} variant="secondary" className="rounded-full border-neutral-700 bg-neutral-900 text-neutral-100">
+            <Badge
+              key={s}
+              variant="secondary"
+              className="rounded-full border-neutral-700 bg-neutral-900 text-neutral-100"
+            >
               {s}
             </Badge>
           ))}
@@ -264,8 +372,16 @@ export default function Portfolio() {
       </section>
 
       {/* PROJECTS (original set) */}
-      <section id="projects" className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6">
-        <motion.h2 {...fadeUp} className="mb-6 text-2xl font-semibold text-center">Projects</motion.h2>
+      <section
+        id="projects"
+        className="relative z-10 mx-auto max-w-6xl px-4 py-12 md:px-6"
+      >
+        <motion.h2
+          {...fadeUp}
+          className="mb-6 text-2xl font-semibold text-center"
+        >
+          Projects
+        </motion.h2>
         <div className="grid gap-4 md:grid-cols-2">
           {PROJECTS.map((p) => (
             <motion.div key={p.name} {...fadeUp}>
@@ -273,17 +389,31 @@ export default function Portfolio() {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-base font-semibold text-emerald-400">{p.name}</h3>
+                      <h3 className="text-base font-semibold text-emerald-400">
+                        {p.name}
+                      </h3>
                       <p className="mt-1 text-sm text-neutral-300">{p.desc}</p>
                     </div>
                     <div className="flex gap-2">
                       {p.live !== "#" && (
-                        <a href={p.live} target="_blank" rel="noreferrer noopener" title="Live" className="hover:opacity-80">
+                        <a
+                          href={p.live}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          title="Live"
+                          className="hover:opacity-80"
+                        >
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       )}
                       {p.repo !== "#" && (
-                        <a href={p.repo} target="_blank" rel="noreferrer noopener" title="Repo" className="hover:opacity-80">
+                        <a
+                          href={p.repo}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          title="Repo"
+                          className="hover:opacity-80"
+                        >
                           <Github className="h-4 w-4" />
                         </a>
                       )}
@@ -291,7 +421,11 @@ export default function Portfolio() {
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {p.tech.map((t) => (
-                      <Badge key={t} variant="outline" className="rounded-full border-neutral-700 text-neutral-300">
+                      <Badge
+                        key={t}
+                        variant="outline"
+                        className="rounded-full border-neutral-700 text-neutral-300"
+                      >
                         {t}
                       </Badge>
                     ))}
@@ -304,27 +438,73 @@ export default function Portfolio() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="relative z-10 mx-auto max-w-6xl px-4 py-16 md:px-6">
-        <motion.h2 {...fadeUp} className="mb-6 text-2xl font-semibold text-center">Contact</motion.h2>
-        <motion.form {...fadeUp} action="https://formspree.io/f/your-id" method="POST" className="grid gap-3 md:mx-auto md:max-w-lg">
-          <input className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500" name="name" placeholder="Your name" required />
-          <input className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500" name="email" type="email" placeholder="Your email" required />
-          <textarea className="min-h-[120px] rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500" name="message" placeholder="Your message" required />
-          <Button type="submit" className="justify-center bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600">Send</Button>
-          <p className="text-xs text-neutral-500">This form uses Formspree. Replace the action URL with your own ID or ask me to wire a Vercel Function.</p>
+      <section
+        id="contact"
+        className="relative z-10 mx-auto max-w-6xl px-4 py-16 md:px-6"
+      >
+        {/* <motion.h2
+          {...fadeUp}
+          className="mb-6 text-2xl font-semibold text-center"
+        >
+          Contact
+        </motion.h2>
+        <motion.form
+          {...fadeUp}
+          action="https://formspree.io/f/your-id"
+          method="POST"
+          className="grid gap-3 md:mx-auto md:max-w-lg"
+        >
+          <input
+            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500"
+            name="name"
+            placeholder="Your name"
+            required
+          />
+          <input
+            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500"
+            name="email"
+            type="email"
+            placeholder="Your email"
+            required
+          />
+          <textarea
+            className="min-h-[120px] rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 outline-none placeholder:text-neutral-500"
+            name="message"
+            placeholder="Your message"
+            required
+          />
+          <Button
+            type="submit"
+            className="justify-center bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600"
+          >
+            Send
+          </Button>
+          <p className="text-xs text-neutral-500">
+            This form uses Formspree. Replace the action URL with your own ID or
+            ask me to wire a Vercel Function.
+          </p>
         </motion.form>
-        <p className="mt-12 text-center text-xs text-neutral-500">© {year} {PROFILE.name}. All rights reserved.</p>
+        <p className="mt-12 text-center text-xs text-neutral-500">
+          © {year} {PROFILE.name}. All rights reserved.
+        </p> */}
       </section>
 
       {/* RESUME BUTTON (original) */}
-      <section id="resume" className="relative z-10 mx-auto max-w-6xl px-4 pb-20 md:px-6">
-        <div className="flex justify-center">
+      <section
+        id="resume"
+        className="relative z-10 mx-auto max-w-6xl px-4 pb-20 md:px-6"
+      >
+        {/* <div className="flex justify-center">
           <Button asChild>
-            <a href={PROFILE.links.resume} target="_blank" rel="noreferrer noopener">
+            <a
+              href={PROFILE.links.resume}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
               View Full Resume <ArrowUpRight className="ml-2 h-4 w-4" />
             </a>
           </Button>
-        </div>
+        </div> */}
       </section>
     </div>
   );
